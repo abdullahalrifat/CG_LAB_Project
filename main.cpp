@@ -5,7 +5,8 @@
 #include <cstdlib>
 #include <stdio.h>
 #include <time.h>
-
+#include<iostream>
+using namespace std;
 float speedOfHero    = 5;//hero
 float speedOfBullet   = 0.05;//bullet
 float speedOfEnemy     = 0.05;//enemy
@@ -20,7 +21,8 @@ int newPlane = 0;
 int bulletStatus = 0;
 int bulletCount = 0;
 int enemyPosition;
-
+int score = 0;
+bool gameOver = false;
 typedef struct Point{
     float x=0;
     float y=0;
@@ -98,7 +100,7 @@ void drawEnemy(float hight, int index){
             glVertex2f(0,-a);
             glVertex2f(b,0);
             glVertex2f(-b,0);    
-    glEnd();
+        glEnd();
    
 }
 
@@ -122,7 +124,26 @@ void drawSquare(float length){
         glVertex2f(-length/2,length/2);
     glEnd();
 }
-
+bool isEnemyBulletCollid(Point enemy, Point bullet)
+{
+    if(enemy.x >= bullet.x && enemy.x <= (bullet.x + enemyLength) &&
+    enemy.y >= bullet.y && enemy.y <= (bullet.y + enemyLength) && 
+    enemy.z >= bullet.z && enemy.z <= (bullet.z + enemyLength))
+    {
+        return true;
+    }
+    return false;
+}
+bool isEnemyHeroCollid(Point enemy, Point hero)
+{
+    if(enemy.x >= hero.x && enemy.x <= (hero.x + heroLength) &&
+    enemy.y >= hero.y && enemy.y <= (hero.y + heroLength) && 
+    enemy.z >= hero.z && enemy.z <= (hero.z + heroLength))
+    {
+        return true;
+    }
+    return false;
+}
 void display(void)
 {
     glClear(GL_COLOR_BUFFER_BIT);
@@ -161,9 +182,22 @@ void display(void)
             drawEnemy(14, i);
         glPopMatrix();
     }
+
+
+    glColor3f(0.9,0.0,0.0);
+    glRasterPos2f(-90, 90); //define position on the screen
+    char y[10]; //the output buffer
+    sprintf(y,"Score: %d",score);
+    char *string = y;
+      
+    while(*string){
+        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, *string++);
+    }
         
 	glFlush();
     glutSwapBuffers();
+
+    
 }
 
 void bulletFire(void)
@@ -210,7 +244,38 @@ void animate(){
             enemy[enemy_count].draw = true;
         }
     }
-    
+    for(int i=0;i<1000;i++)
+    {
+        for(int j=0;j<100;j++)
+        {
+            if(isEnemyBulletCollid(enemy[j], bullets[i]))
+            {
+                if( bullets[i].draw)
+                {
+                    cout<<"Colliding"<<endl;
+                    enemy[j].draw = false;
+                    enemy[j].x =  (rand()%190)-90;
+                    enemy[j].y =  positionOfEnemy.y + (j*10);
+
+                    bullets[i].draw = false;
+                    bullets[i].x=positionOfHero.x;
+                    bullets[i].y=positionOfHero.y;
+
+                    score++;
+                }
+                
+            }
+            if(isEnemyHeroCollid(enemy[j] , positionOfHero))
+            {
+                
+                    gameOver = true;
+                    cout<< "game over"<<endl;
+                          
+                
+                
+            }
+        }
+    }
     for(int i=0;i<1000;i++)
     {
         if(bullets[i].draw)
