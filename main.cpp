@@ -7,21 +7,25 @@
 #include <time.h>
 
 float speedOfHero    = 5;//hero
-float speedOfBullet   = 5;//bullet
+float speedOfBullet   = 0.05;//bullet
 float speedOfEnemy     = 0.05;//enemy
 float rotationspeedOfBullet = 0.1;//Replace value here
 float r,g,bl;
 
+int bulletLength = 4;
+int enemyLength = 14;
+int heroLength = 15;
+
 int newPlane = 0;
 int bulletStatus = 0;
-
+int bulletCount = 0;
 int enemyPosition;
 
 typedef struct Point{
     float x=0;
     float y=0;
     float z=0;
-    bool draw=true;;
+    bool draw=false;
 }Point;
 
 Point positionOfHero = {0,-95,0}; //hero
@@ -54,7 +58,17 @@ void drawHero(float hight){
             glVertex2f(-b,0);
     glEnd();
 }
-
+void drawBullet(float hight){
+   glBegin(GL_TRIANGLES);
+            glColor3f(0.9,0.0,0.0);
+            int a,b;
+            a = hight;
+            b = (hight/10)*7;
+            glVertex2f(0,a);
+            glVertex2f(b,0);
+            glVertex2f(-b,0);
+    glEnd();
+}
 void drawBorder(float hight){
    glBegin(GL_TRIANGLES);
             glColor3f(0,0,0);
@@ -114,12 +128,19 @@ void display(void)
     glClear(GL_COLOR_BUFFER_BIT);
     drawAxes();
 
-    positionOfBullet.x = positionOfHero.x;
-    glPushMatrix();
-                glTranslated(positionOfBullet.x,positionOfBullet.y,0);
-                glRotated(angleOfSquare,0,0,1);
-                drawSquare(2);
+    for(int i=0;i<1000;i++)
+    {
+        if(bullets[i].draw)
+        {
+                glPushMatrix();
+                    glTranslated(bullets[i].x,bullets[i].y,0);
+                    glRotated(angleOfSquare,0,0,1);
+                    drawBullet(bulletLength);
                 glPopMatrix();
+        }
+        
+    }
+    
 
     // drawing hero
 	glPushMatrix();
@@ -132,14 +153,7 @@ void display(void)
     glPopMatrix();
 
     
-    // for(int enemy_count=0; enemy_count <100; enemy_count++)
-    // {
-    //    enemy[enemy_count].y = positionOfEnemy.y + (enemy_count * 1000);
-    //    glPushMatrix();
-    //         glTranslatef(enemy[enemy_count].x,enemy[enemy_count].y,enemy[enemy_count].z);
-    //         drawEnemy(14, enemy_count);
-    //     glPopMatrix();
-    // }     
+     
     for(int i=0;i<3;i++)
     {
          glPushMatrix();
@@ -196,14 +210,19 @@ void animate(){
             enemy[enemy_count].draw = true;
         }
     }
-    // enemy[0].y -= speedOfEnemy; 
-    // if(enemy[0].y < -100)  
-    // {
-    //     enemy[0].y =  positionOfEnemy.y;
-    //     enemy[0].draw = true;
-    // }
-    if(bulletStatus==1){
-        positionOfBullet.y += 0.1;
+    
+    for(int i=0;i<1000;i++)
+    {
+        if(bullets[i].draw)
+        {
+            bullets[i].y +=speedOfBullet;
+            if(bullets[i].y >= 100)
+            {
+                bullets[i].draw = false;
+                bullets[i].x=positionOfHero.x;
+                bullets[i].y=positionOfHero.y;
+            }
+        }
     }
     
     glutPostRedisplay();
@@ -221,6 +240,7 @@ void init(void)
     for(int i=0;i<1000;i++)
     {
         bullets[i].x=positionOfHero.x;
+        bullets[i].y=positionOfHero.y;
     }
 }
 
@@ -294,8 +314,12 @@ void my_mouse(int button, int state, int x, int y)
    switch (button) {
       case GLUT_LEFT_BUTTON:
          if (state == GLUT_DOWN){
-                bulletStatus = 1;
-                positionOfBullet.x = positionOfHero.x;
+                bulletCount++;
+                if(bulletCount>=1000)bulletCount = 0;
+                bullets[bulletCount].draw = true;
+                bullets[bulletCount].x=positionOfHero.x;
+                bullets[bulletCount].y=positionOfHero.y;
+                
 
          }
          break;
